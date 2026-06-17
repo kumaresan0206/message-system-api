@@ -1,0 +1,119 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - prod
+
+  Stage:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - prod
+
+  DatabaseUrl:
+    Type: String
+    NoEcho: true
+
+Globals:
+  Function:
+    Timeout: 30
+    Runtime: python3.13
+    Environment:
+      Variables:
+        ENVIRONMENT: !Ref Environment
+        STAGE: !Ref Stage
+        USER_POOL_ID: !Ref UserPool
+        CLIENT_ID: !Ref UserPoolClient
+        AWS_REGION: !Ref AWS::Region
+        DATABASE_URL: !Ref DatabaseUrl
+
+Resources:
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub '${Environment}-users'
+      UsernameAttributes:
+        - email
+      AutoVerifiedAttributes:
+        - email
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireUppercase: false
+          RequireLowercase: false
+          RequireNumbers: false
+          RequireSymbols: false
+
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId: !Ref UserPool
+      ClientName: !Sub '${Environment}-client'
+      GenerateSecret: false
+      ExplicitAuthFlows:
+        - ALLOW_USER_PASSWORD_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+
+  ProfileApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub '${Environment}-api'
+      StageName: !Ref Stage
+      OpenApiVersion: 3.0.1
+      Auth:
+        DefaultAuthorizer: CognitoAuthorizer
+        Authorizers:
+          CognitoAuthorizer:
+            UserPoolArn: !GetAtt UserPool.Arn
+      Cors:
+        AllowMethods: "'GET', 'POST', 'PUT', 'DELETE'"
+        AllowHeaders: "'Authorization,Content-Type'"
+        AllowOrigin: "'*'"
+
+  ProfileFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${Environment}-users-function'
+      CodeUri: ./src
+      Handler: services.users.handler.lambda_handler
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Effect: Allow
+              Action:
+                - cognito-idp:SignUp
+                - cognito-idp:ConfirmSignUp
+                - cognito-idp:InitiateAuth
+                - cognito-idp:GetUser
+              Resource: !GetAtt UserPool.Arn
+      Events:
+        CreateUser:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/auth/users
+            Method: POST
+        ConfirmUser:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/auth/confirm
+            Method: POST
+        Login:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/auth/login
+            Method: POST
+        GetUser:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/auth/me
+            Method: GET

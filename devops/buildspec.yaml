@@ -1,0 +1,31 @@
+version: 0.2
+
+phases:
+
+  install:
+    commands:
+      - echo Installing dependencies...
+      - pip install -r requirements.txt
+      - pip install aws-sam-cli
+
+  pre_build:
+    commands:
+      - echo Running tests...
+      - python -m pytest tests -v
+
+  build:
+    commands:
+      - echo Building SAM application...
+      - sam build -t devops/template.yaml
+
+  post_build:
+    commands:
+      - echo Packaging SAM application...
+      - sam package \
+          --template-file .aws-sam/build/template.yaml \
+          --s3-bucket your-artifact-bucket \
+          --output-template-file packaged-template.yaml
+
+artifacts:
+  files:
+    - packaged-template.yaml
