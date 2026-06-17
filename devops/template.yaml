@@ -30,7 +30,6 @@ Globals:
         STAGE: !Ref Stage
         USER_POOL_ID: !Ref UserPool
         CLIENT_ID: !Ref UserPoolClient
-        AWS_REGION: !Ref AWS::Region
         DATABASE_URL: !Ref DatabaseUrl
 
 Resources:
