@@ -98,18 +98,24 @@ Resources:
             RestApiId: !Ref ProfileApi
             Path: /api/v1/auth/users
             Method: POST
+            Auth:
+              Authorizer: NONE
         ConfirmUser:
           Type: Api
           Properties:
             RestApiId: !Ref ProfileApi
             Path: /api/v1/auth/confirm
             Method: POST
+            Auth:
+              Authorizer: NONE
         Login:
           Type: Api
           Properties:
             RestApiId: !Ref ProfileApi
             Path: /api/v1/auth/login
             Method: POST
+            Auth:
+              Authorizer: NONE
         GetUser:
           Type: Api
           Properties:
