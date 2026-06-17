@@ -24,13 +24,13 @@ phases:
       - sam build -t devops/template.yaml
 
   post_build:
-  commands:
-    - echo Packaging SAM application...
-    - |
-      sam package \
-        --template-file .aws-sam/build/template.yaml \
-        --s3-bucket user-service-artifacts-s3 \
-        --output-template-file packaged-template.yaml
+    commands:
+      - echo Packaging SAM application...
+      - |
+        sam package \
+          --template-file .aws-sam/build/template.yaml \
+          --s3-bucket user-service-artifacts-s3 \
+          --output-template-file packaged-template.yaml
 
 artifacts:
   files:
