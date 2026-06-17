@@ -80,7 +80,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub '${Environment}-users-function'
-      CodeUri: ./src
+      CodeUri: ../src
       Handler: services.users.handler.lambda_handler
       Policies:
         - AWSLambdaBasicExecutionRole
