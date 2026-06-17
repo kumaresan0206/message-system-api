@@ -6,6 +6,7 @@ phases:
     commands:
       - echo Installing dependencies...
       - pip install -r requirements.txt
+      - pip install -r requirements.txt -t layers/common/python
       - pip install aws-sam-cli
 
   pre_build:

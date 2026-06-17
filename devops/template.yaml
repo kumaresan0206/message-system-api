@@ -75,12 +75,23 @@ Resources:
         AllowHeaders: "'Authorization,Content-Type'"
         AllowOrigin: "'*'"
 
+  CommonLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Sub '${Environment}-common-layer'
+      Description: Common dependencies for Lambda functions
+      ContentUri: layers/common
+      CompatibleRuntimes:
+        - python3.13
+
   ProfileFunction:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub '${Environment}-users-function'
       CodeUri: ../src
       Handler: services.users.handler.lambda_handler
+      Layers:
+        - !Ref CommonLayer
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
