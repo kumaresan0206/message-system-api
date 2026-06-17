@@ -40,3 +40,8 @@ class ConflictException(Exception):
         self.success = success
         self.message = message
         super().__init__(self.message)
+
+class InternalServerErrorException(Exception):
+
+    def __init__(self, message="Internal Server Error"):
+        super().__init__(message, 500)
