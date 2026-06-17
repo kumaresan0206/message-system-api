@@ -1,6 +1,6 @@
 import boto3
 from botocore.exceptions import ClientError
-from config.config import USER_POOL_ID, CLIENT_ID, AWS_REGION
+from services.users.config.config import USER_POOL_ID, CLIENT_ID, AWS_REGION
 from common.exceptions.exceptions import (
     InternalServerErrorException,
     UnauthorizedException,

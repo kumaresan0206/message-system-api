@@ -1,9 +1,9 @@
 from unittest.mock import MagicMock, patch
 
-from src.services.users.repository.user_repository import create_user
+from services.users.repository.user_repository import create_user
 
 
-@patch("src.services.users.repository.user_repository.get_connection")
+@patch("services.users.repository.user_repository.get_connection")
 def test_create_user(mock_connection):
 
     conn = MagicMock()

@@ -1,10 +1,10 @@
 import json
 from unittest.mock import patch
 
-from src.services.users.handler import lambda_handler
+from services.users.handler import lambda_handler
 
 
-@patch("src.services.users.handler.register_user")
+@patch("services.users.handler.register_user")
 def test_register_user(mock_register):
 
     mock_register.return_value = {}
@@ -24,7 +24,7 @@ def test_register_user(mock_register):
     assert response["statusCode"] == 200
 
 
-@patch("src.services.users.handler.confirm_user_registration")
+@patch("services.users.handler.confirm_user_registration")
 def test_confirm_user(mock_confirm):
 
     mock_confirm.return_value = {}
@@ -43,7 +43,7 @@ def test_confirm_user(mock_confirm):
     assert response["statusCode"] == 200
 
 
-@patch("src.services.users.handler.authenticate_user")
+@patch("services.users.handler.authenticate_user")
 def test_login(mock_authenticate):
 
     mock_authenticate.return_value = {
@@ -66,7 +66,7 @@ def test_login(mock_authenticate):
     assert response["statusCode"] == 200
 
 
-@patch("src.services.users.handler.show_user_details")
+@patch("services.users.handler.show_user_details")
 def test_get_user(mock_show_user):
 
     mock_show_user.return_value = {

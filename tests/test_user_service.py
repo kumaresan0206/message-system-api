@@ -1,13 +1,13 @@
 from unittest.mock import patch
 
-from src.services.users.services.user_service import (
+from services.users.services.user_service import (
     register_user,
     authenticate_user
 )
 
 
-@patch("src.services.users.services.user_service.create_user")
-@patch("src.services.users.services.user_service.cognito_client")
+@patch("services.users.services.user_service.create_user")
+@patch("services.users.services.user_service.cognito_client")
 def test_register_user(mock_cognito, mock_create_user):
 
     mock_cognito.sign_up.return_value = {
@@ -25,7 +25,7 @@ def test_register_user(mock_cognito, mock_create_user):
     mock_create_user.assert_called_once()
 
 
-@patch("src.services.users.services.user_service.cognito_client")
+@patch("services.users.services.user_service.cognito_client")
 def test_authenticate_user(mock_cognito):
 
     mock_cognito.initiate_auth.return_value = {
