@@ -3,11 +3,11 @@ version: 0.2
 phases:
 
   install:
-  commands:
-    - rm -rf layers/common/python
-    - mkdir -p layers/common/python
-    - pip install -r requirements.txt -t layers/common/python
-      - pip install aws-sam-cli
+    commands:
+      - rm -rf layers/common/python
+      - mkdir -p layers/common/python
+      - pip install -r requirements.txt -t layers/common/python
+        - pip install aws-sam-cli
 
   pre_build:
     commands:
