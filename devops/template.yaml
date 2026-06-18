@@ -344,27 +344,6 @@ Outputs:
   CommonLayer:
     Description: "Common Layer"
     Value: !Ref CommonLayer
-
-  CommonLayerArn:
-    Description: "Common Layer ARN"
-    Value: !GetAtt CommonLayer.Arn
-
-  CommonLayerVersion:
-    Description: "Common Layer Version"
-    Value: !GetAtt CommonLayer.Version
-
-  CommonLayerLatestVersion:
-    Description: "Common Layer Latest Version"
-    Value: !GetAtt CommonLayer.LatestVersion
-
-  CommonLayerLatestVersionArn:
-    Description: "Common Layer Latest Version ARN"
-    Value: !GetAtt CommonLayer.LatestVersionArn
-
-  CommonLayerVersionArn:
-    Description: "Common Layer Version ARN"
-    Value: !GetAtt CommonLayer.VersionArn
-  
   ProfileFunction:
     Description: "Profile Function ARN"
     Value: !GetAtt ProfileFunction.Arn
