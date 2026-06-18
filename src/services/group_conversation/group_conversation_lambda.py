@@ -1,6 +1,6 @@
 import json
 
-from src.common.logger.logger import log_info, log_error
+from common.logger.logger import log_info, log_error
 from repository.group_conversation_repository import get_user_by_cognito_sub
 from services.group_conversation_services import (
     create_group,

@@ -9,7 +9,7 @@ from services.group_member_services import (
     remove_member,
 )
 
-from src.common.response.response import success_response, error_response
+from common.response.response import success_response, error_response
 
 from common.exceptions.exceptions import (
     ValidationException,
