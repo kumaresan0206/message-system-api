@@ -1,6 +1,6 @@
 from common.exceptions.exceptions import ConflictException, NotFoundException
 import time
-from services.direct_conversation.repository.direct_conversation_repository import (
+from repository.direct_conversation_repository import (
     get_direct_conversation,
     create_direct_conversation,
     get_user_by_email,

@@ -1,12 +1,12 @@
 import json
 import time
 from common.logger.logger import log_info, log_error
-from services.direct_conversation.services.direct_conversation_service import (
+from services.direct_conversation_service import (
     start_direct_conversation,
     get_user_conversations,
     get_conversation_by_id,
 )
-from services.direct_conversation.repository.direct_conversation_repository import get_user_by_cognito_sub
+from repository.direct_conversation_repository import get_user_by_cognito_sub
 from common.response.response import success_response, error_response
 from common.exceptions.exceptions import (
     ConflictException,

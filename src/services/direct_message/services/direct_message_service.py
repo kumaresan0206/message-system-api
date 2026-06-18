@@ -1,4 +1,4 @@
-from services.direct_message.repository.direct_message_repository import (
+from repository.direct_message_repository import (
     create_direct_message, 
     get_direct_conversation_by_id, 
     get_messages_by_conversation_id, 

@@ -1,7 +1,7 @@
 import json
 from unittest.mock import patch
 
-from services.users.handler import lambda_handler
+from services.users.user_handler import lambda_handler
 
 
 @patch("services.users.handler.register_user")

@@ -1,6 +1,6 @@
 import boto3
 from botocore.exceptions import ClientError
-from services.users.config.config import USER_POOL_ID, CLIENT_ID
+from config.config import USER_POOL_ID, CLIENT_ID
 from common.exceptions.exceptions import (
     InternalServerErrorException,
     UnauthorizedException,
@@ -8,7 +8,7 @@ from common.exceptions.exceptions import (
     ForbiddenException,
 )
 from common.logger.logger import log_info, log_error
-from services.users.repository.user_repository import create_user
+from repository.user_repository import create_user
 
 cognito_client = boto3.client("cognito-idp", region_name="ap-south-1")
 

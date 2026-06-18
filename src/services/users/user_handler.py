@@ -1,6 +1,6 @@
 import json
 
-from services.users.services.user_service import (
+from services.user_service import (
     register_user,
     confirm_user_registration,
     authenticate_user
