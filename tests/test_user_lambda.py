@@ -66,20 +66,19 @@ def test_login(mock_authenticate):
     assert response["statusCode"] == 200
 
 
-@patch("services.users.handler.show_user_details")
-def test_get_user(mock_show_user):
-
-    mock_show_user.return_value = {
-        "usersub": "123",
-        "username": "kumar",
-        "email": "kumar@gmail.com"
-    }
+def test_get_user():
 
     event = {
         "resource": "/api/v1/auth/me",
         "httpMethod": "GET",
-        "headers": {
-            "Authorization": "Bearer token"
+        "requestContext": {
+            "authorizer": {
+                "claims": {
+                    "sub": "123",
+                    "email": "test@example.com",
+                    "name": "john"
+                }
+            }
         }
     }
 
