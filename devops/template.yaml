@@ -80,7 +80,7 @@ Resources:
     Properties:
       LayerName: !Sub '${Environment}-common-layer'
       Description: Common dependencies for Lambda functions
-      ContentUri: layers/common
+      ContentUri: ../layers/common
       CompatibleRuntimes:
         - python3.13
 
