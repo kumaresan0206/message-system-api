@@ -89,7 +89,7 @@ Resources:
     Properties:
       FunctionName: !Sub 'message-${Environment}-users-function'
       CodeUri: ../src/services/users
-      Handler: handler.lambda_handler
+      Handler: user_handler.lambda_handler
       Layers:
         - !Ref CommonLayer
       Policies:
