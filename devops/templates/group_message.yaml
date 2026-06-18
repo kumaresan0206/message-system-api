@@ -1,0 +1,71 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Parameters:
+	Environment:
+		Type: String
+	Stage:
+		Type: String
+	DatabaseUrl:
+		Type: String
+	ProfileApiId:
+		Type: String
+	CommonLayerArn:
+		Type: String
+
+Globals:
+	Function:
+		Timeout: 30
+		Runtime: python3.14
+		Environment:
+			Variables:
+				ENVIRONMENT: !Ref Environment
+				STAGE: !Ref Stage
+				DATABASE_URL: !Ref DatabaseUrl
+
+Resources:
+	GroupMessageFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub 'message-${Environment}-group-message-function'
+      CodeUri: ../src/services/group_message
+      Handler: group_message_lambda.lambda_handler
+      Layers:
+        - !Ref CommonLayer
+      Policies:
+        - AWSLambdaBasicExecutionRole
+      Events:
+        SendGroupMessage:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/group/conversations/{group_id}/messages
+            Method: POST
+        GetGroupMessages:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/group/conversations/{group_id}/messages
+            Method: GET
+        UpdateGroupMessage:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/group/conversations/{group_id}/messages/{message_id}
+            Method: PATCH
+        DeleteGroupMessage:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/group/conversations/{group_id}/messages/{message_id}
+            Method: DELETE
+        GroupMessageMarkAsRead:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/group/conversations/{group_id}/messages/{message_id}/read
+            Method: POST
+
+Outputs:
+	GroupMessageFunctionArn:
+		Value: !GetAtt GroupMessageFunction.Arn
