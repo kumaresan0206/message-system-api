@@ -324,3 +324,62 @@ Resources:
             RestApiId: !Ref ProfileApi
             Path: /api/v1/group/conversations/{group_id}/messages/{message_id}/read
             Method: POST
+
+Outputs:
+  ApiUrl:
+    Description: "API Gateway URL"
+    Value: !Sub "https://${ProfileApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/"
+
+  UserPoolId:
+    Description: "User Pool ID"
+    Value: !Ref UserPool
+  UserPoolClientId:
+    Description: "User Pool Client ID"
+    Value: !Ref UserPoolClient
+
+  ProfileApi:
+    Description: "Profile API ID"
+    Value: !Ref ProfileApi
+
+  CommonLayer:
+    Description: "Common Layer"
+    Value: !Ref CommonLayer
+
+  CommonLayerArn:
+    Description: "Common Layer ARN"
+    Value: !GetAtt CommonLayer.Arn
+
+  CommonLayerVersion:
+    Description: "Common Layer Version"
+    Value: !GetAtt CommonLayer.Version
+
+  CommonLayerLatestVersion:
+    Description: "Common Layer Latest Version"
+    Value: !GetAtt CommonLayer.LatestVersion
+
+  CommonLayerLatestVersionArn:
+    Description: "Common Layer Latest Version ARN"
+    Value: !GetAtt CommonLayer.LatestVersionArn
+
+  CommonLayerVersionArn:
+    Description: "Common Layer Version ARN"
+    Value: !GetAtt CommonLayer.VersionArn
+  
+  ProfileFunction:
+    Description: "Profile Function ARN"
+    Value: !GetAtt ProfileFunction.Arn
+  DirectConversationFunction:
+    Description: "Direct Conversation Function ARN"
+    Value: !GetAtt DirectConversationFunction.Arn
+  DirectMessageFunction:
+    Description: "Direct Message Function ARN"
+    Value: !GetAtt DirectMessageFunction.Arn
+  GroupConversationFunction:
+    Description: "Group Conversation Function ARN"
+    Value: !GetAtt GroupConversationFunction.Arn 
+  GroupMessageFunction:
+    Description: "Group Message Function ARN"
+    Value: !GetAtt GroupMessageFunction.Arn
+  GroupMemberFunction:
+    Description: "Group Member Function ARN"
+    Value: !GetAtt GroupMemberFunction.Arn
