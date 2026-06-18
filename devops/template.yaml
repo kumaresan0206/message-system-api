@@ -20,118 +20,346 @@ Parameters:
     Type: String
     NoEcho: true
 
+Globals:
+  Function:
+    Timeout: 30
+    Runtime: python3.14
+    Environment:
+      Variables:
+        ENVIRONMENT: !Ref Environment
+        STAGE: !Ref Stage
+        USER_POOL_ID: !Ref UserPool
+        CLIENT_ID: !Ref UserPoolClient
+        DATABASE_URL: !Ref DatabaseUrl
+
 Resources:
-  InfraStack:
-    Type: AWS::Serverless::Application
+  UserPool:
+    Type: AWS::Cognito::UserPool
     Properties:
-      Location: templates/infra.yaml
-      Parameters:
-        Environment: !Ref Environment
-        Stage: !Ref Stage
+      UserPoolName: !Sub '${Environment}-users'
+      UsernameAttributes:
+        - email
+      AutoVerifiedAttributes:
+        - email
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireUppercase: false
+          RequireLowercase: false
+          RequireNumbers: false
+          RequireSymbols: false
 
-  AuthStack:
-    Type: AWS::Serverless::Application
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
     Properties:
-      Location: templates/auth.yaml
-      Parameters:
-        Environment: !Ref Environment
-        Stage: !Ref Stage
-        DatabaseUrl: !Ref DatabaseUrl
-        UserPoolArn: !GetAtt InfraStack.Outputs.UserPoolArn
-        UserPoolId: !GetAtt InfraStack.Outputs.UserPoolId
-        UserPoolClientId: !GetAtt InfraStack.Outputs.UserPoolClientId
-        ProfileApiId: !GetAtt InfraStack.Outputs.ProfileApiId
-        CommonLayerArn: !GetAtt InfraStack.Outputs.CommonLayerArn
+      UserPoolId: !Ref UserPool
+      ClientName: !Sub '${Environment}-client'
+      GenerateSecret: false
+      ExplicitAuthFlows:
+        - ALLOW_USER_PASSWORD_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
 
-  DirectConversationStack:
-    Type: AWS::Serverless::Application
+  ProfileApi:
+    Type: AWS::Serverless::Api
     Properties:
-      Location: templates/direct_conversation.yaml
-      Parameters:
-        Environment: !Ref Environment
-        Stage: !Ref Stage
-        DatabaseUrl: !Ref DatabaseUrl
-        ProfileApiId: !GetAtt InfraStack.Outputs.ProfileApiId
-        CommonLayerArn: !GetAtt InfraStack.Outputs.CommonLayerArn
+      Name: !Sub '${Environment}-api'
+      StageName: !Ref Stage
+      OpenApiVersion: 3.0.1
+      Auth:
+        DefaultAuthorizer: CognitoAuthorizer
+        Authorizers:
+          CognitoAuthorizer:
+            UserPoolArn: !GetAtt UserPool.Arn
+      Cors:
+        AllowMethods: "'GET', 'POST', 'PUT', 'DELETE'"
+        AllowHeaders: "'Authorization,Content-Type'"
+        AllowOrigin: "'*'"
 
-  DirectMessageStack:
-    Type: AWS::Serverless::Application
+  CommonLayer:
+    Type: AWS::Serverless::LayerVersion
     Properties:
-      Location: templates/direct_message.yaml
-      Parameters:
-        Environment: !Ref Environment
-        Stage: !Ref Stage
-        DatabaseUrl: !Ref DatabaseUrl
-        ProfileApiId: !GetAtt InfraStack.Outputs.ProfileApiId
-        CommonLayerArn: !GetAtt InfraStack.Outputs.CommonLayerArn
+      LayerName: !Sub '${Environment}-common-layer'
+      Description: Common dependencies for Lambda functions
+      ContentUri: ../layers/common
+      CompatibleRuntimes:
+        - python3.13
 
-  GroupConversationStack:
-    Type: AWS::Serverless::Application
+  ProfileFunction:
+    Type: AWS::Serverless::Function
     Properties:
-      Location: templates/group_conversation.yaml
-      Parameters:
-        Environment: !Ref Environment
-        Stage: !Ref Stage
-        DatabaseUrl: !Ref DatabaseUrl
-        ProfileApiId: !GetAtt InfraStack.Outputs.ProfileApiId
-        CommonLayerArn: !GetAtt InfraStack.Outputs.CommonLayerArn
+      FunctionName: !Sub 'message-${Environment}-users-function'
+      CodeUri: ../src/services/users
+      Handler: user_handler.lambda_handler
+      Layers:
+        - !Ref CommonLayer
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Effect: Allow
+              Action:
+                - cognito-idp:SignUp
+                - cognito-idp:ConfirmSignUp
+                - cognito-idp:InitiateAuth
+                - cognito-idp:GetUser
+              Resource: !GetAtt UserPool.Arn
+      Events:
+        CreateUser:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/auth/users
+            Method: POST
+            Auth:
+              Authorizer: NONE
+        ConfirmUser:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/auth/confirm
+            Method: POST
+            Auth:
+              Authorizer: NONE
+        Login:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/auth/login
+            Method: POST
+            Auth:
+              Authorizer: NONE
+        GetUser:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/auth/me
+            Method: GET
+      
+  DirectConversationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub 'message-${Environment}-direct-conversation-function'
+      CodeUri: ../src/services/direct_conversation
+      Handler: direct_conversation_lambda.lambda_handler
+      Layers:
+        - !Ref CommonLayer
+      Policies:
+        - AWSLambdaBasicExecutionRole
+      Events:
+        StartDirectConversation:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/direct/conversations
+            Method: POST
+        GetUserConversations:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/direct/conversations
+            Method: GET
+        GetConversationById:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/direct/conversations/{dm_id}
+            Method: GET
 
-  GroupMemberStack:
-    Type: AWS::Serverless::Application
+  DirectMessageFunction:
+    Type: AWS::Serverless::Function
     Properties:
-      Location: templates/group_members.yaml
-      Parameters:
-        Environment: !Ref Environment
-        Stage: !Ref Stage
-        DatabaseUrl: !Ref DatabaseUrl
-        ProfileApiId: !GetAtt InfraStack.Outputs.ProfileApiId
-        CommonLayerArn: !GetAtt InfraStack.Outputs.CommonLayerArn
+      FunctionName: !Sub 'message-${Environment}-direct-message-function'
+      CodeUri: ../src/services/direct_message
+      Handler: direct_message_lambda.lambda_handler
+      Layers:
+        - !Ref CommonLayer
+      Policies:
+        - AWSLambdaBasicExecutionRole
+      Events:
+        SendDirectMessage:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/direct/conversations/{dm_id}/messages
+            Method: POST
+        GetDirectMessages:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/direct/conversations/{dm_id}/messages
+            Method: GET
+        GetDirectMessageById:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/direct/conversations/{dm_id}/messages/{message_id}
+            Method: GET
+        UpdateDirectMessage:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/direct/messages/{message_id}
+            Method: PATCH
+        DeleteDirectMessage:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/direct/messages/{message_id}
+            Method: DELETE
 
-  GroupMessageStack:
-    Type: AWS::Serverless::Application
+  GroupConversationFunction:
+    Type: AWS::Serverless::Function
     Properties:
-      Location: templates/group_message.yaml
-      Parameters:
-        Environment: !Ref Environment
-        Stage: !Ref Stage
-        DatabaseUrl: !Ref DatabaseUrl
-        ProfileApiId: !GetAtt InfraStack.Outputs.ProfileApiId
-        CommonLayerArn: !GetAtt InfraStack.Outputs.CommonLayerArn
+      FunctionName: !Sub 'message-${Environment}-group-conversation-function'
+      CodeUri: ../src/services/group_conversation
+      Handler: group_conversation_lambda.lambda_handler
+      Layers:
+        - !Ref CommonLayer
+      Policies:
+        - AWSLambdaBasicExecutionRole
+      Events:
+        StartGroupConversation:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/group/conversations
+            Method: POST
+        GetUserConversations:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/group/conversations
+            Method: GET
+        GetConversationById:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/group/conversations/{group_id}
+            Method: GET
+        UpdateGroupConversation:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/group/conversations/{group_id}
+            Method: PATCH
+        DeleteGroupConversation:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/group/conversations/{group_id}
+            Method: DELETE
+  GroupMemberFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub 'message-${Environment}-group-member-function'
+      CodeUri: ../src/services/group_members
+      Handler: group_member_lambda.lambda_handler
+      Layers:
+        - !Ref CommonLayer
+      Policies:
+        - AWSLambdaBasicExecutionRole
+      Events:
+        AddGroupMember:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/group/conversations/{group_id}/members
+            Method: POST
+        GetGroupMembers:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/group/conversations/{group_id}/members
+            Method: GET
+        UpdateGroupMember:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/group/conversations/{group_id}/members/{user_id}
+            Method: PATCH
+        RemoveGroupMember:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/group/conversations/{group_id}/members/{user_id}
+            Method: DELETE
+
+  GroupMessageFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub 'message-${Environment}-group-message-function'
+      CodeUri: ../src/services/group_message
+      Handler: group_message_lambda.lambda_handler
+      Layers:
+        - !Ref CommonLayer
+      Policies:
+        - AWSLambdaBasicExecutionRole
+      Events:
+        SendGroupMessage:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/group/conversations/{group_id}/messages
+            Method: POST
+        GetGroupMessages:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/group/conversations/{group_id}/messages
+            Method: GET
+        UpdateGroupMessage:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/group/conversations/{group_id}/messages/{message_id}
+            Method: PATCH
+        DeleteGroupMessage:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/group/conversations/{group_id}/messages/{message_id}
+            Method: DELETE
+        GroupMessageMarkAsRead:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/group/conversations/{group_id}/messages/{message_id}/read
+            Method: POST
 
 Outputs:
   ApiUrl:
     Description: "API Gateway URL"
-    Value: !GetAtt InfraStack.Outputs.ApiUrl
+    Value: !Sub "https://${ProfileApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/"
 
   UserPoolId:
     Description: "User Pool ID"
-    Value: !GetAtt InfraStack.Outputs.UserPoolId
+    Value: !Ref UserPool
   UserPoolClientId:
     Description: "User Pool Client ID"
-    Value: !GetAtt InfraStack.Outputs.UserPoolClientId
+    Value: !Ref UserPoolClient
 
   ProfileApi:
     Description: "Profile API ID"
-    Value: !GetAtt InfraStack.Outputs.ProfileApiId
+    Value: !Ref ProfileApi
 
   CommonLayer:
     Description: "Common Layer"
-    Value: !GetAtt InfraStack.Outputs.CommonLayerArn
+    Value: !Ref CommonLayer
+  
   ProfileFunction:
     Description: "Profile Function ARN"
-    Value: !GetAtt AuthStack.Outputs.ProfileFunctionArn
+    Value: !GetAtt ProfileFunction.Arn
   DirectConversationFunction:
     Description: "Direct Conversation Function ARN"
-    Value: !GetAtt DirectConversationStack.Outputs.DirectConversationFunctionArn
+    Value: !GetAtt DirectConversationFunction.Arn
   DirectMessageFunction:
     Description: "Direct Message Function ARN"
-    Value: !GetAtt DirectMessageStack.Outputs.DirectMessageFunctionArn
+    Value: !GetAtt DirectMessageFunction.Arn
   GroupConversationFunction:
     Description: "Group Conversation Function ARN"
-    Value: !GetAtt GroupConversationStack.Outputs.GroupConversationFunctionArn 
+    Value: !GetAtt GroupConversationFunction.Arn 
   GroupMessageFunction:
     Description: "Group Message Function ARN"
-    Value: !GetAtt GroupMessageStack.Outputs.GroupMessageFunctionArn
+    Value: !GetAtt GroupMessageFunction.Arn
   GroupMemberFunction:
     Description: "Group Member Function ARN"
-    Value: !GetAtt GroupMemberStack.Outputs.GroupMemberFunctionArn
+    Value: !GetAtt GroupMemberFunction.Arn
