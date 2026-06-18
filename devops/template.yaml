@@ -23,7 +23,7 @@ Parameters:
 Globals:
   Function:
     Timeout: 30
-    Runtime: python3.13
+    Runtime: python3.14
     Environment:
       Variables:
         ENVIRONMENT: !Ref Environment
@@ -133,3 +133,75 @@ Resources:
             RestApiId: !Ref ProfileApi
             Path: /api/v1/auth/me
             Method: GET
+      
+  DirectConversationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub 'message-${Environment}-direct-conversation-function'
+      CodeUri: ../src
+      Handler: services.direct_conversation.direct_conversation_lambda.lambda_handler
+      Layers:
+        - !Ref CommonLayer
+      Policies:
+        - AWSLambdaBasicExecutionRole
+      Events:
+        StartDirectConversation:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/direct/conversations
+            Method: POST
+        GetUserConversations:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/direct/conversations
+            Method: GET
+        GetConversationById:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/direct/conversations/{dm_id}
+            Method: GET
+
+  DirectMessageFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub 'message-${Environment}-direct-message-function'
+      CodeUri: ../src
+      Handler: services.direct_message.direct_message_lambda.lambda_handler
+      Layers:
+        - !Ref CommonLayer
+      Policies:
+        - AWSLambdaBasicExecutionRole
+      Events:
+        SendDirectMessage:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/direct/conversations/{dm_id}/messages
+            Method: POST
+        GetDirectMessages:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/direct/conversations/{dm_id}/messages
+            Method: GET
+        GetDirectMessageById:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/direct/conversations/{dm_id}/messages/{message_id}
+            Method: GET
+        UpdateDirectMessage:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/direct/messages/{message_id}
+            Method: PATCH
+        DeleteDirectMessage:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProfileApi
+            Path: /api/v1/direct/messages/{message_id}
+            Method: DELETE
