@@ -3,8 +3,7 @@ import json
 from services.users.services.user_service import (
     register_user,
     confirm_user_registration,
-    authenticate_user,
-    show_user_details
+    authenticate_user
 )
 
 from common.response.response import error_response, success_response
@@ -54,20 +53,15 @@ def lambda_handler(event, context):
 
         elif path == "/api/v1/auth/me" and method == "GET":
 
-            authorization = event["headers"]["Authorization"]
-
-            access_token = authorization.replace(
-                "Bearer ",
-                ""
-            )
-
-            result = show_user_details(
-                access_token=access_token
-            )
+            claims = event["requestContext"]["authorizer"]["claims"]
 
             return success_response(
                 message="User details retrieved",
-                data=result
+                data={
+                    "usersub": claims["sub"],
+                    "email": claims["email"],
+                    "username": claims.get("name")
+                }
             )
 
         return error_response(

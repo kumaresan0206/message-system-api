@@ -87,7 +87,7 @@ Resources:
   ProfileFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub '${Environment}-users-function'
+      FunctionName: !Sub 'message-${Environment}-users-function'
       CodeUri: ../src
       Handler: services.users.handler.lambda_handler
       Layers:

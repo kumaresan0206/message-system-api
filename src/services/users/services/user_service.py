@@ -107,32 +107,3 @@ def authenticate_user(email, password):
         raise InternalServerErrorException(
             message="An error occurred during authentication: " + str(e)
         )
-
-
-def show_user_details(access_token):
-    try:
-        log_info("Attempting to retrieve user details")
-
-        response = cognito_client.get_user(AccessToken=access_token)
-
-        user_attributes = {
-            attr["Name"]: attr["Value"] for attr in response["UserAttributes"]
-        }
-
-        log_info("User details retrieved successfully", username=response["Username"])
-
-        return {
-            "usersub": response["Username"],
-            "username": user_attributes.get("name"),
-            "email": user_attributes.get("email"),
-        }
-
-    except cognito_client.exceptions.NotAuthorizedException:
-        log_error("Invalid or expired access token")
-
-        raise UnauthorizedException(message="Invalid or expired access token")
-
-    except ClientError as e:
-        log_error("Client error during user details retrieval", error=str(e))
-
-        raise InternalServerErrorException(message="An error occurred while retrieving user details")
