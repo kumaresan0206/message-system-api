@@ -1,4 +1,4 @@
-from src.common.database.database import get_connection
+from common.database.database import get_connection
 
 def create_direct_message(conversation_id, sender_id, content):
     conn = get_connection()

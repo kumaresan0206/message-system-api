@@ -88,8 +88,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub 'message-${Environment}-users-function'
-      CodeUri: ../src
-      Handler: services.users.handler.lambda_handler
+      CodeUri: ../src/services/users
+      Handler: handler.lambda_handler
       Layers:
         - !Ref CommonLayer
       Policies:
@@ -138,8 +138,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub 'message-${Environment}-direct-conversation-function'
-      CodeUri: ../src
-      Handler: services.direct_conversation.direct_conversation_lambda.lambda_handler
+      CodeUri: ../src/services/direct_conversation
+      Handler: direct_conversation_lambda.lambda_handler
       Layers:
         - !Ref CommonLayer
       Policies:
@@ -168,8 +168,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub 'message-${Environment}-direct-message-function'
-      CodeUri: ../src
-      Handler: services.direct_message.direct_message_lambda.lambda_handler
+      CodeUri: ../src/services/direct_message
+      Handler: direct_message_lambda.lambda_handler
       Layers:
         - !Ref CommonLayer
       Policies:

@@ -1,10 +1,10 @@
 import json
 
-from src.common.logger.logger import log_info, log_error
-from summa.direct_message.repository.direct_message_repository import get_user_by_cognito_sub
-from summa.direct_message.services.direct_message_service import send_direct_message, get_direct_messages, edit_message, delete_conversation_message
-from src.common.response.response import success_response, error_response
-from src.common.exceptions.exceptions import ValidationException, NotFoundException, ForbiddenException, UnauthorizedException
+from common.logger.logger import log_info, log_error
+from services.direct_message.repository.direct_message_repository import get_user_by_cognito_sub
+from services.direct_message.services.direct_message_service import send_direct_message, get_direct_messages, edit_message, delete_conversation_message
+from common.response.response import success_response, error_response
+from common.exceptions.exceptions import ValidationException, NotFoundException, ForbiddenException, UnauthorizedException
 
 
 def lambda_handler(event, context):

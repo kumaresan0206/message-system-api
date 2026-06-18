@@ -1,4 +1,4 @@
-from summa.direct_message.repository.direct_message_repository import (
+from services.direct_message.repository.direct_message_repository import (
     create_direct_message, 
     get_direct_conversation_by_id, 
     get_messages_by_conversation_id, 
@@ -7,7 +7,7 @@ from summa.direct_message.repository.direct_message_repository import (
     delete_message
     )
 
-from src.common.exceptions.exceptions import NotFoundException, UnauthorizedException, ForbiddenException
+from common.exceptions.exceptions import NotFoundException, UnauthorizedException, ForbiddenException
 
 def send_direct_message(conversation_id, sender_id, content):
 
